@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script type="text/javascript"
+	src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript">
+	$(function windowload(){
+		var tr;
+		var td;
+		var page=1;
+		var pagemax=2;
+		
+// 		var parameter = {page:3, key:"개봉"};
+	$("#search").click(function start(){
+		$("#ul").empty();
+		$("#div").empty();
+		var k = $("#key").val()
+		var parameter = {page:page, key:k};
+// 		alert(page)
+		$.ajax("/Test",{data:parameter , success:function(data){//ajax는 무조건 객체만 전해줘야함
+			pagemax = Math.ceil($($(data).find("totalCount")).text()/10); //페이지 구하기
+// 			alert(pagemax)
+			var total = $(data).find("totalCount").text(); // 검색된 결과수
+			var addr = $(data).find("dutyAddr"); //객체화
+			var name = $(data).find("dutyName"); //객체화
+			var tel = $(data).find("dutyTel1");
+			var x =$(data).find("wgs84Lat"); //경도
+			var y = $(data).find("wgs84Lon"); //위도
+			
+			//페이지 버튼 뽑아내기
+			for(var i=1 ;i<=pagemax ;i++ ){
+				var btn = $("<button\>").text(i);
+				$(btn).attr("idx",i);
+				$("#div").append(btn);
+				
+				$(btn).click(function(){
+					page = $(this).attr("idx");
+// 					alert(page)
+					start();
+				})
+			}
+
+			$.each(name, function(idx,item){ //idx가 9가되면 한페이지를 만들기
+// 				alert($(item).text()); //item라는 노드에서 text를 뽑아온다 
+// 				{<dutyAddr>가산약국</dutyAddr>} 예를 들면 이런형태에서 <dutyAddr> 를 벗겨낸다
+				var li=$("<li\>").text($(item).text());
+				$("#ul").append(li)
+			})
+		}})
+	})
+})
+
+
+</script>
+</head>
+<body>
+	<h2>약국정보</h2>
+	<input type="text" id="key">
+	<button id="search">검색</button>
+	<ul id="ul"></ul>
+	<div id="div"></div>
+</body>
+</html>
