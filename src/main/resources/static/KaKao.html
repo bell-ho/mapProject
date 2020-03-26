@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=b7704a1fbcf3b30d181ac61c2cd3fd27"></script>
+<script>
+	$(function(){
+		var page=1;
+		var pagemax=2;
+		
+		$("#search").click(function start(){
+			$("#ul").empty();
+			$("#btn").empty(); //버튼이 담겨있는 div
+			
+			
+						 var k = $("#key").val();	
+						 var parameter = {page:page , key:k};
+						 
+						 $.ajax("/KaKao",{data:parameter , success:function(data){
+							 pagemax = Math.ceil($($(data).find("totalCount")).text()/10);
+							 var addr = $(data).find("dutyAddr");
+							 var name = $(data).find("dutyName");
+							 var tel = $(data).find("dutyTel1");
+							 var x = $(data).find("wgs84Lat");
+							 var y = $(data).find("wgs84Lon");
+							 
+							 for(var i=1 ;i<=pagemax ;i++ ){
+								 var btn= $("<button\>").text(i); //<button>1</button>,<button>2</button>...
+								 $(btn).attr("idx",i);
+								 $("#btn").append(btn);
+								 
+								 $(btn).click(function(){
+									 page = $(this).attr("idx"); //위에서 설정한 idx값이 내려온다
+									 start();
+								 })
+							 }
+							 
+							 $.each(name,function(idx,item){
+								 var li = $("<li\>").text($(item).text());
+									$(li).attr("idx",idx) //page랑 idx가 다를테니 새로 부여해줘야함
+									$("#ul").append(li)
+							 })
+							 $("li").click(function content(){
+								 $("#content").empty();
+								 var ii = $(this).attr("idx");
+								 
+								 var address = $(addr[ii]).text();
+								 var teltel = $(tel[ii]).text();
+								 var mapx = $(x[ii]).text();
+								 var mapy = $(y[ii]).text();
+								 
+								 var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+								    mapOption = { 
+								        center: new kakao.maps.LatLng(mapx, mapy), // 지도의 중심좌표
+								        level: 4 // 지도의 확대 레벨
+								    };
+
+								var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+								// 마커가 표시될 위치입니다 
+								var markerPosition  = new kakao.maps.LatLng(mapx, mapy); 
+
+								// 마커를 생성합니다
+								var marker = new kakao.maps.Marker({
+								    position: markerPosition
+								});
+
+								// 마커가 지도 위에 표시되도록 설정합니다
+								marker.setMap(map);
+
+								$("#content").append(address,teltel);
+							 });
+						 }});
+		});
+	});
+</script>
+</head>
+<body>
+	<h2>서울병원정보</h2>
+	<input type="text" id="key">
+	<button id="search">검색</button>
+	<ul id="ul"></ul>
+	<div id="btn"></div>
+	<div id="content"></div>
+	<div id="map" style="width: 50%;height: 350px;"></div>
+</body>
+</html>
